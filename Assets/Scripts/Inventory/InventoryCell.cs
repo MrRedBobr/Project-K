@@ -7,31 +7,39 @@ using UnityEngine.EventSystems;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 
+public delegate void startDragingItem(int index);
+public delegate void endDraging(int index, AssetItem item);
 public class InventoryCell : MonoBehaviour, IDragHandler, IEndDragHandler, IBeginDragHandler
 {
-	public event Action Injecting;
+	[Header("Actions and links on data with frefab")]
+	[SerializeField] private AssetItem _item;
+	public event Action Ejecting;
+	public startDragingItem StartChangePosition;
+	public endDraging PasteChangePosition;
+
+	[Header("Parants and draging spaces")]
 	[SerializeField] private Transform _emptycellPrefub;
-
-	[SerializeField] private TextMeshProUGUI _nameField;
-	[SerializeField] private Image _iconField;
-
 	private Transform _draggingParent;
 	[SerializeField]private Transform _originalParent;
 	[SerializeField]private RectTransform _rect;
 	[SerializeField] private Canvas _canvas;
-
 	private Transform _oldPlase;
+
+	[Header("UI property")]
+	[SerializeField] private TextMeshProUGUI _nameField;
+	[SerializeField] private Image _iconField;
 
 	private void OnEnable()
 	{
 		_rect = GetComponent<RectTransform>();
 	}
 
-	public void Init(Transform draggingParent, Canvas canvas)
+	public void Init(Transform draggingParent, Canvas canvas, AssetItem item)
 	{
 		_draggingParent = draggingParent;
 		_originalParent = transform.parent;
 		_canvas = canvas;
+		_item = item;
 	}
 
 	public void Render(IItem item)
@@ -44,14 +52,30 @@ public class InventoryCell : MonoBehaviour, IDragHandler, IEndDragHandler, IBegi
 		int index = transform.GetSiblingIndex();
 		transform.SetParent(_draggingParent);
 		_oldPlase = Instantiate(_emptycellPrefub, _originalParent);
-		Debug.Log(index);
 		_oldPlase.SetSiblingIndex(index);
+		Debug.Log("start pos " + index);
+
+		StartChangePosition(index);
 	}
 	public void OnDrag(PointerEventData eventData)
 	{
 		_rect.anchoredPosition += eventData.delta / _canvas.scaleFactor;
 	}
 	public void OnEndDrag(PointerEventData eventData)
+	{
+		if (((RectTransform)_originalParent.transform.parent).rect.Contains(_rect.anchoredPosition))
+		{
+			Injecting();
+		}
+		else 
+		{
+			Ejecting?.Invoke();
+			Destroy(_oldPlase.gameObject);
+		}
+		
+	}
+
+	private void Injecting()
 	{
 		int closestIndex = 0;
 		int oldIndex = _oldPlase.GetSiblingIndex();
@@ -63,13 +87,13 @@ public class InventoryCell : MonoBehaviour, IDragHandler, IEndDragHandler, IBegi
 				closestIndex = i;
 			}
 		}
-		Debug.Log(closestIndex);
-		closestIndex = oldIndex > closestIndex ? closestIndex : closestIndex+1;
+		Debug.Log("end pos " + closestIndex);
+		//вызвать событие вставки на нужное место
+		PasteChangePosition(closestIndex, _item);
+		//костыль для unity ui, который не хочет адекватно работать
+		closestIndex = oldIndex > closestIndex ? closestIndex : closestIndex + 1;
 		transform.SetParent(_originalParent);
 		Destroy(_oldPlase.gameObject);
-		/*Vector3 pos = _rect.position;
-		pos.z = 0;
-		_rect.position = pos;*/
 		transform.SetSiblingIndex(closestIndex);
 	}
 }
