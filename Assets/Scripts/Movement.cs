@@ -108,10 +108,6 @@ public class Movement : MonoBehaviour
 		}
 		void Gravity()
 		{
-			/*if (!character.controller.isGrounded)
-			{
-				character.controller.Move(Vector3.down * character.playerSettings.gravity * Time.deltaTime);
-			}*/
 			character.controller.Move(Vector3.down * character.playerSettings.gravity * Time.deltaTime);
 		}
 		void FenceChek()
@@ -123,11 +119,23 @@ public class Movement : MonoBehaviour
 			RaycastHit hit;
 			if(Physics.Raycast(ray, out hit, 0.6f) && Vector3.Angle(hit.normal, Vector3.up) > 80 && Input.GetButton("Sprint"))
 			{
-				Debug.DrawLine(lazyChaker, hit.point);
-				if(hit.collider.bounds.max.y - lazyChaker.y < 0.8)
+				if (hit.collider.bounds.max.y - lazyChaker.y < 0.8)
 				{
-					character.anim.SetTrigger("Jumping Over Into Combat");
-					character.State = new OverFence(character);
+					Vector3 hitPoint = hit.point;
+
+					if (Vector3.Distance(hit.collider.bounds.ClosestPoint(hitPoint - hit.normal), hitPoint) < 0.5f)
+					{
+						character.anim.SetTrigger("Jumping Over Into Combat");
+						character.State = new OverFence(character);
+					}
+					else
+					{
+						RaycastHit climbHit;
+						Ray climbRay = new Ray(lazyChaker + forward + Vector3.up * 0.9f, Vector3.down);
+						Physics.Raycast(climbRay, out climbHit, 0.9f);
+						character.anim.SetTrigger("ClimbingFence");
+						character.State = new FenceClimbState(character, climbHit.point);
+					}
 				}
 			}
 			
@@ -156,6 +164,7 @@ public class Movement : MonoBehaviour
 							character.anim.SetTrigger("Jumping Over Pit");
 							float time = Vector3.Distance(character.transform.position, point) > 3 ? 0.8f : 1.25f;
 							character.anim.speed = time;
+							character.controller.enabled = false;
 							character.State = new JumpOverPit(character, point);
 							break;
 						}
@@ -229,6 +238,27 @@ public class Movement : MonoBehaviour
 		}
 	}
 
+	class FenceClimbState : IMoveState
+	{
+		private Movement _character;
+		private Vector3 _endPosition;
+
+		public FenceClimbState(Movement character, Vector3 newPoint)
+		{
+			character.controller.enabled = false;
+			_character = character;
+			_endPosition = newPoint;
+		}
+
+		public void FixedUpdate()
+		{
+			_character.StartCoroutine(_character.FenceClimbCoroutine(_endPosition, 1f));
+		}
+		public void Update()
+		{
+
+		}
+	}
 
 	#endregion
 
@@ -242,5 +272,17 @@ public class Movement : MonoBehaviour
 		anim.speed = 1;
 		_blockRotationPlayer = true;
 	}
+	IEnumerator FenceClimbCoroutine(Vector3 pos, float seconds)
+	{
+		transform.position = pos;
+		yield return new WaitForSeconds(seconds);
+		State = new GroundState(this);
+		controller.enabled = true;
+		anim.speed = 1;
+	}
+	#endregion
+
+	#region animation action
+
 	#endregion
 }
