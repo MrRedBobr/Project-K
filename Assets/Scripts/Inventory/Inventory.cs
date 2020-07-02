@@ -4,14 +4,18 @@ using UnityEngine;
 
 public class Inventory : MonoBehaviour
 {
-	[SerializeField] private List<AssetItem> Items;
+	[SerializeField] private PlayerInventory playerInventory;
+	[SerializeField] private List<AssetItem> _Items;
+
+	[Header("GameObjects in scene")]
 	[SerializeField] private InventoryCell _inventoryCellTemplate;
 	[SerializeField] private Transform _container;
 	[SerializeField] private Transform _draggingParent;
 	[SerializeField] private Canvas canva;
 	public void OnEnable()
 	{
-		Render(Items);
+		_Items = playerInventory.InventoryItems;
+		Render(_Items);
 	}
 
 	public void Render(List<AssetItem> items)
@@ -20,10 +24,12 @@ public class Inventory : MonoBehaviour
 		items.ForEach(item =>
 		{
 			var cell = Instantiate(_inventoryCellTemplate, _container);
-			cell.Init(_draggingParent, canva);
+			cell.Init(_draggingParent, canva, item);
 			cell.Render(item);
 
-			cell.Injecting += () => Destroy(cell.gameObject);
+			cell.Ejecting += () => Destroy(cell.gameObject);
+			cell.StartChangePosition = (index) => _Items.RemoveAt(index);
+			cell.PasteChangePosition = (index, _item) => _Items.Insert(index, _item);
 		});
 	}
 }
