@@ -133,8 +133,11 @@ public class Movement : MonoBehaviour
 						RaycastHit climbHit;
 						Ray climbRay = new Ray(lazyChaker + forward + Vector3.up * 0.9f, Vector3.down);
 						Physics.Raycast(climbRay, out climbHit, 0.9f);
-						character.anim.SetTrigger("ClimbingFence");
-						character.State = new FenceClimbState(character, climbHit.point);
+						if(climbHit.collider != null)
+						{
+							character.anim.SetTrigger("ClimbingFence");
+							character.State = new FenceClimbState(character, climbHit.point);
+						}
 					}
 				}
 			}
@@ -242,21 +245,27 @@ public class Movement : MonoBehaviour
 	{
 		private Movement _character;
 		private Vector3 _endPosition;
+		private float dist;
 
 		public FenceClimbState(Movement character, Vector3 newPoint)
 		{
 			character.controller.enabled = false;
 			_character = character;
 			_endPosition = newPoint;
+
+			_character.anim.SetFloat("InputZ", 0);
+			_character.anim.SetFloat("InputX", 0);
+			_character.anim.SetFloat("InputManitide", 0);
 		}
 
 		public void FixedUpdate()
 		{
-			_character.StartCoroutine(_character.FenceClimbCoroutine(_endPosition, 1f));
+			if (dist > 0.1f) _character.transform.position = Vector3.Lerp(_character.transform.position, _endPosition, 0.1f);
+			else _character.StartCoroutine(_character.OverfenchToGroundMove(0.1f));
 		}
 		public void Update()
 		{
-
+			dist = Vector3.Distance(_character.transform.position, _endPosition);
 		}
 	}
 
