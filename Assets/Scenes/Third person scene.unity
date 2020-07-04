@@ -3497,7 +3497,7 @@ GameObject:
   - component: {fileID: 594204858}
   - component: {fileID: 594204857}
   - component: {fileID: 594204856}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Terrain
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4796,17 +4796,9 @@ MonoBehaviour:
   m_PreserveMeshAssetOnDestroy: 0
   assetGuid: 
   m_IsSelectable: 1
-  m_SelectedFaces: 03000000
-  m_SelectedEdges:
-  - a: 12
-    b: 13
-  - a: 14
-    b: 12
-  - a: 13
-    b: 15
-  - a: 15
-    b: 14
-  m_SelectedVertices: 0c0000000d0000000e0000000f000000
+  m_SelectedFaces: 
+  m_SelectedEdges: []
+  m_SelectedVertices: 
 --- !u!23 &1198251035
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -7011,7 +7003,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 919132148538286082}
   m_LocalRotation: {x: -0, y: 1, z: -0, w: 0.0000010430812}
-  m_LocalPosition: {x: 12.4, y: 0, z: 13}
+  m_LocalPosition: {x: 12.4, y: 0, z: 13.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 268055663751824214}
@@ -7104,7 +7096,7 @@ MonoBehaviour:
   raycastDistance: 0.5
   envieronmantLayer:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 257
   pelvisOffset: 0
   pelvisUpAndDownSpeed: 1
   feetToIkPositionSpeed: 0.5
@@ -7145,6 +7137,9 @@ MonoBehaviour:
   anim: {fileID: 5866666020378878146}
   controller: {fileID: 919132148538286084}
   playerSettings: {fileID: 11400000, guid: 47f59c8e469397b429c113060211076a, type: 2}
+  _sprintingLayerMasck:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!4 &1031632035497869541
 Transform:
   m_ObjectHideFlags: 0
