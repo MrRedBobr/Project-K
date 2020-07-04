@@ -21,6 +21,8 @@ public class Movement : MonoBehaviour
 	private bool _blockRotationPlayer = true;
 	private IMoveState State { get; set; }
 
+	[SerializeField] private LayerMask _sprintingLayerMasck;
+
 	public Movement()
 	{
 		State = new GroundState(this);
@@ -48,6 +50,9 @@ public class Movement : MonoBehaviour
 
 	#region state region
 
+	#region state without sword
+
+	#region defauld state
 	class GroundState : IMoveState
 	{
 		private Movement character;
@@ -117,7 +122,7 @@ public class Movement : MonoBehaviour
 			Vector3 lazyChaker = position + new Vector3(0, 0.501f, 0);
 			Ray ray = new Ray(lazyChaker, forward);
 			RaycastHit hit;
-			if(Physics.Raycast(ray, out hit, 0.6f) && Vector3.Angle(hit.normal, Vector3.up) > 80 && Input.GetButton("Sprint"))
+			if(Physics.Raycast(ray, out hit, 0.6f, character._sprintingLayerMasck) && Vector3.Angle(hit.normal, Vector3.up) > 80 && Input.GetButton("Sprint"))
 			{
 				if (hit.collider.bounds.max.y - lazyChaker.y < 0.8)
 				{
@@ -132,7 +137,7 @@ public class Movement : MonoBehaviour
 					{
 						RaycastHit climbHit;
 						Ray climbRay = new Ray(lazyChaker + forward + Vector3.up * 0.9f, Vector3.down);
-						Physics.Raycast(climbRay, out climbHit, 0.9f);
+						Physics.Raycast(climbRay, out climbHit, 0.9f, character._sprintingLayerMasck);
 						if(climbHit.collider != null)
 						{
 							character.anim.SetTrigger("ClimbingFence");
@@ -178,6 +183,9 @@ public class Movement : MonoBehaviour
 
 		}
 	}
+	#endregion
+
+
 	class OverFence : IMoveState
 	{
 		private Movement character;
@@ -269,7 +277,13 @@ public class Movement : MonoBehaviour
 		}
 	}
 
-	#endregion
+	#endregion state without sword
+
+	#region state with sword
+
+	#endregion state with sword
+
+	#endregion state region
 
 	#region korutine
 	IEnumerator OverfenchToGroundMove(float seconds)
