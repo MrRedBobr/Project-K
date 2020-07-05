@@ -24,6 +24,15 @@ public class Movement : MonoBehaviour
 
 	[SerializeField] private LayerMask _sprintingLayerMasck;
 
+
+	[Header("Item Places")]
+	[SerializeField] private Transform _backSword;
+	[SerializeField] private Transform _waistRight;
+	[SerializeField] private Transform _waistLeft;
+
+	[SerializeField] private Transform _rightHand;
+	[SerializeField] private Transform _leftHand;
+
 	public Movement()
 	{
 		State = new GroundState(this);
@@ -154,11 +163,12 @@ public class Movement : MonoBehaviour
 			if (Input.GetButton("Sprint") && Input.GetButton("Vertical") && character.controller.isGrounded)
 			{
 				Vector3 position = character.transform.position;
-				Vector3 forward = character.transform.forward * 0.9f;
+				Vector3 forward = character.transform.forward * 0.3f;
 
 				Vector3 chekPos = position + new Vector3(0f, 1f, 0f) + forward;
 				Debug.DrawRay(chekPos, Vector3.down, Color.green);
-				if(!Physics.Raycast(chekPos, Vector3.down*2, 2f))
+				forward = character.transform.forward * 0.9f;
+				if (!Physics.Raycast(chekPos, Vector3.down*2, 2f))
 				{
 					for (int i = 0; i < 5; i++)
 					{
@@ -299,6 +309,11 @@ public class Movement : MonoBehaviour
 		{
 			Gravity();
 			if (Input.GetMouseButtonDown(0)) _character.anim.SetTrigger("Attack");
+			if(Input.GetKeyDown(KeyCode.Q))
+			{
+				_character.anim.SetTrigger("Sword");
+				_character.State = new GroundState(_character);
+			}
 		}
 
 		void MoveAndRot()
