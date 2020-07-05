@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.PlayerLoop;
+using UnityEngine.UIElements;
 
 interface IMoveState
 {
 	void FixedUpdate();
 	void Update();
 }
-[RequireComponent(typeof(Animator), typeof(CharacterController), typeof(PlayerSettings))]
+[RequireComponent(typeof(Animator), typeof(CharacterController))]
 public class Movement : MonoBehaviour
 {
 	//all private var
@@ -22,6 +23,15 @@ public class Movement : MonoBehaviour
 	private IMoveState State { get; set; }
 
 	[SerializeField] private LayerMask _sprintingLayerMasck;
+
+
+	[Header("Item Places")]
+	[SerializeField] private Transform _backSword;
+	[SerializeField] private Transform _waistRight;
+	[SerializeField] private Transform _waistLeft;
+
+	[SerializeField] private Transform _rightHand;
+	[SerializeField] private Transform _leftHand;
 
 	public Movement()
 	{
@@ -40,7 +50,6 @@ public class Movement : MonoBehaviour
 	{
 		InputX = Input.GetAxis("Horizontal");
 		InputZ = Input.GetAxis("Vertical");
-
 		State.Update();
 	}
 	private void FixedUpdate()
@@ -73,6 +82,7 @@ public class Movement : MonoBehaviour
 		public void Update()
 		{
 			InputMagnitude();
+			if (Input.GetKeyDown(KeyCode.Q)) character.State = new ArmoredSwordMovement(character);
 			return;
 		}
 
@@ -153,11 +163,12 @@ public class Movement : MonoBehaviour
 			if (Input.GetButton("Sprint") && Input.GetButton("Vertical") && character.controller.isGrounded)
 			{
 				Vector3 position = character.transform.position;
-				Vector3 forward = character.transform.forward * 0.9f;
+				Vector3 forward = character.transform.forward * 0.3f;
 
 				Vector3 chekPos = position + new Vector3(0f, 1f, 0f) + forward;
 				Debug.DrawRay(chekPos, Vector3.down, Color.green);
-				if(!Physics.Raycast(chekPos, Vector3.down*2, 2f))
+				forward = character.transform.forward * 0.9f;
+				if (!Physics.Raycast(chekPos, Vector3.down*2, 2f))
 				{
 					for (int i = 0; i < 5; i++)
 					{
@@ -184,8 +195,6 @@ public class Movement : MonoBehaviour
 		}
 	}
 	#endregion
-
-
 	class OverFence : IMoveState
 	{
 		private Movement character;
@@ -216,7 +225,7 @@ public class Movement : MonoBehaviour
 
 		public void Update()
 		{
-
+			
 		}
 
 	}
@@ -280,7 +289,72 @@ public class Movement : MonoBehaviour
 	#endregion state without sword
 
 	#region state with sword
+	class ArmoredSwordMovement : IMoveState
+	{
+		private Movement _character;
 
+		private Vector3 _disireMoveDirection;
+		private bool _blockRotationPlayer;
+		private float _speed;
+		public ArmoredSwordMovement(Movement character)
+		{
+			character.anim.SetTrigger("Sword");
+			this._character = character;
+		}
+		public void FixedUpdate()
+		{
+			InputMagnitude();
+		}
+		public void Update()
+		{
+			Gravity();
+			if (Input.GetMouseButtonDown(0)) _character.anim.SetTrigger("Attack");
+			if(Input.GetKeyDown(KeyCode.Q))
+			{
+				_character.anim.SetTrigger("Sword");
+				_character.State = new GroundState(_character);
+			}
+		}
+
+		void MoveAndRot()
+		{
+			Camera camera = Camera.main;
+			Vector3 forward = _character.cam.transform.forward;
+			var right = _character.cam.transform.right;
+
+			forward.y = 0f;
+			right.Normalize();
+			_disireMoveDirection = forward * _character.InputZ + right * _character.InputX;
+
+			if (_blockRotationPlayer && _character._blockRotationPlayer)
+			{
+				_character.transform.rotation = Quaternion.Slerp(_character.transform.rotation, Quaternion.LookRotation(_disireMoveDirection), _character.playerSettings.directionRotationSpeed);
+			}
+		}
+		void InputMagnitude()
+		{
+			_character.anim.SetFloat("InputZ", _character.InputZ, 0.0f, Time.deltaTime * 2f);
+
+			_speed = new Vector2(_character.InputX, _character.InputZ).magnitude;
+			if (_speed > 1) _speed = 1;
+
+
+			if (_speed > _character.playerSettings.allowRotation)
+			{
+				_character.anim.SetFloat("InputManitide", _speed, 0f, Time.deltaTime);
+				_blockRotationPlayer = Input.GetButton("Horizontal") || Input.GetButton("Vertical");
+				MoveAndRot();
+			}
+			else if (_speed < _character.playerSettings.allowRotation)
+			{
+				_character.anim.SetFloat("InputManitide", _speed, 0f, Time.deltaTime);
+			}
+		}
+		void Gravity()
+		{
+			_character.controller.Move(Vector3.down * _character.playerSettings.gravity * Time.deltaTime);
+		}
+	}
 	#endregion state with sword
 
 	#endregion state region
