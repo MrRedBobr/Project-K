@@ -15,3 +15,6 @@ MonoBehaviour:
   allowRotation: 0.01
   directionRotationSpeed: 0.1
   gravity: 5
+  rHandElucidatorRotation: {x: -175.86, y: -87.49799, z: 88.284}
+  spineElucidatorRotation: {x: 0, y: 0, z: -15}
+  spineElucidatorPosition: {x: 0.063, y: 0.269, z: -0.022}
