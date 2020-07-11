@@ -20,9 +20,9 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _Emisiontex:
-        m_Texture: {fileID: 2800000, guid: 1a0bf6f88f9d62a4a86b87b8b8c27662, type: 3}
-        m_Scale: {x: 0.6, y: 0.96}
-        m_Offset: {x: 0.08, y: 0}
+        m_Texture: {fileID: 2800000, guid: 29de6dd49f7ce614687171339ad92676, type: 3}
+        m_Scale: {x: 0.73, y: 1}
+        m_Offset: {x: 0, y: -0.03}
     - _MainTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -47,7 +47,7 @@ Material:
     - _Opacity: 20
     - __dirty: 1
     m_Colors:
-    - _Color0: {r: 0, g: 0.14487866, b: 0.3301886, a: 0}
+    - _Color0: {r: 0.099012084, g: 0.41541246, b: 0.8396226, a: 1}
     - _TintColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.5}
-    - _Vector0: {r: 0, g: 0, b: 0.08, a: 0}
-    - _Vectorif: {r: 0.2, g: 0.1, b: 0.5, a: 0}
+    - _Vector0: {r: 0, g: 0, b: -0.15, a: 0}
+    - _Vectorif: {r: 0.2, g: 0.46, b: 0.24, a: 0}

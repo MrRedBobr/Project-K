@@ -31,6 +31,10 @@ public class Movement : MonoBehaviour
 	[SerializeField] private Rigidbody rbody;
 	[SerializeField] private CapsuleCollider cCollider;
 
+	[Header("Parkour obg")]
+	public List<Collider> Handing = new List<Collider>();
+	public List<Collider> Colliders = new List<Collider>();
+
 	public Movement()
 	{
 		State = new GroundState(this);
@@ -44,7 +48,7 @@ public class Movement : MonoBehaviour
 		cam = Camera.main;
 		rbody.useGravity = false;
 		cCollider.enabled = false;
-		rbody.isKinematic = false;
+		rbody.isKinematic = true;
 	}
 
 	private void Update()
@@ -52,7 +56,6 @@ public class Movement : MonoBehaviour
 		InputX = Input.GetAxis("Horizontal");
 		InputZ = Input.GetAxis("Vertical");
 		State.Update();
-		anim.SetBool("isGrounded", Grounded());
 	}
 	private void FixedUpdate()
 	{
@@ -62,7 +65,7 @@ public class Movement : MonoBehaviour
 	private bool Grounded()
 	{
 		Ray ray = new Ray(transform.position + Vector3.up * 0.4f, Vector3.down);
-		return Physics.SphereCast(ray, 0.2f, 0.6f);
+		return Physics.SphereCast(ray, 0.2f, 0.4f);
 	}
 
 	#region state region
@@ -89,13 +92,40 @@ public class Movement : MonoBehaviour
 		}
 		public void Update()
 		{
-			_character.anim.SetBool("isGrounded", _character.controller.isGrounded);
+			_character.anim.SetBool("isGrounded", _character.Grounded());
 			InputMagnitude();
 			if (Input.GetKeyDown(KeyCode.Q)) _character.State = new ArmoredSwordMovement(_character);
+			if (Input.GetKeyDown(KeyCode.Space))
+			{
+				_character.controller.enabled = false;
+				_character.cCollider.enabled = true;
+
+				_character.rbody.useGravity = true;
+				_character.rbody.isKinematic = false;
+
+				_character.anim.applyRootMotion = false;
+				Vector3 forward = _character.transform.forward;
+				Vector3 force;
+				if (Physics.Raycast(_character.transform.position + Vector3.up * 0.3f, forward, 0.4f))
+				{
+					force = (forward * 0.2f + Vector3.up * 2f) * 3f;
+				}
+				else
+				{
+					force = (forward + Vector3.up * 2f) * 3f;
+				}
+
+				_character.rbody.AddForce((forward + Vector3.up * 2f) * 3f, ForceMode.VelocityChange);
+
+				_character.anim.SetBool("isGrounded", false);
+
+				_character.State = new Jumping(_character);
+			}
+			
 			return;
 		}
 
-		void MoveAndRot()
+		private void MoveAndRot()
 		{
 			Camera camera = Camera.main;
 			Vector3 forward = _character.cam.transform.forward;
@@ -110,7 +140,7 @@ public class Movement : MonoBehaviour
 				_character.transform.rotation = Quaternion.Slerp(_character.transform.rotation, Quaternion.LookRotation(_disireMoveDirection), _character.playerSettings.directionRotationSpeed);
 			}
 		}
-		void InputMagnitude()
+		private void InputMagnitude()
 		{
 			
 			_character.anim.SetFloat("InputZ", _character.InputZ, 0.0f, Time.deltaTime * 2f);
@@ -130,18 +160,18 @@ public class Movement : MonoBehaviour
 				_character.anim.SetFloat("InputManitide", _speed, 0f, Time.deltaTime);
 			}
 		}
-		void Gravity()
+		private void Gravity()
 		{
 			_character.controller.Move(Vector3.down * _character.playerSettings.gravity * Time.deltaTime);
 		}
-		void FenceChek()
+		private void FenceChek()
 		{
 			Vector3 position = _character.transform.position;
 			Vector3 forward = _character.transform.forward;
 			Vector3 lazyChaker = position + new Vector3(0, 0.501f, 0);
 			Ray ray = new Ray(lazyChaker, forward);
 			RaycastHit hit;
-			if(Physics.Raycast(ray, out hit, 0.6f, _character._sprintingLayerMasck) && Vector3.Angle(hit.normal, Vector3.up) > 80 && Input.GetButton("Sprint"))
+			if(Physics.Raycast(ray, out hit, 0.3f, _character._sprintingLayerMasck) && Vector3.Angle(hit.normal, Vector3.up) > 80 && Input.GetButton("Sprint"))
 			{
 				if (hit.collider.bounds.max.y - lazyChaker.y < 0.8)
 				{
@@ -167,7 +197,7 @@ public class Movement : MonoBehaviour
 			}
 			
 		}
-		void PitChek()
+		private void PitChek()
 		{
 			if (Input.GetButton("Sprint") && Input.GetButton("Vertical") && _character.controller.isGrounded)
 			{
@@ -198,7 +228,7 @@ public class Movement : MonoBehaviour
 						}
 					}
 					//not fount place, but is pit. JUMP!
-					_character.State = new JumpOnCliff(_character);
+					//_character.State = new JumpOnCliff(_character);
 				}
 			}
 		}
@@ -224,12 +254,14 @@ public class Movement : MonoBehaviour
 
 		void Moving()
 		{
-			if (Vector3.Distance(pelvisPos, character.transform.position) < 1f)
+			float dist = Vector3.Distance(pelvisPos, character.transform.position);
+			Debug.Log(dist);
+			if (dist < 0.6f)
 			{
-				Vector3 stepTo = Vector3.Lerp(character.transform.position, pelvisPos + forward, 0.1f);
+				Vector3 stepTo = Vector3.Lerp(character.transform.position, pelvisPos + forward, dist / 2f);
 				character.transform.localPosition = stepTo;
 			}
-			else if(character._blockRotationPlayer) character.StartCoroutine(character.OverfenchToGroundMove(0.5f));
+			else if(character._blockRotationPlayer) character.StartCoroutine(character.OverfenchToGroundMove(0.1f));
 		}
 
 		public void Update()
@@ -295,42 +327,93 @@ public class Movement : MonoBehaviour
 		}
 	}
 
-	class JumpOnCliff : IMoveState
+	class Jumping : IMoveState
 	{
 		private Movement _character;
-		public JumpOnCliff(Movement character)
+		public Jumping(Movement character)
 		{
-			character.controller.enabled = false;
-			character.cCollider.enabled = true;
-
-			character.rbody.useGravity = true;
-			character.rbody.isKinematic = false;
-
-			character.anim.applyRootMotion = false;
-			Vector3 forward = character.transform.forward;
-
-			character.rbody.AddForce((forward + Vector3.up) * 3f, ForceMode.VelocityChange);
-
 			_character = character;
 		}
 		public void FixedUpdate()
 		{
-			Vector3 pos = _character.transform.position + Vector3.up * 1.9f;
-			Vector3 forward = _character.transform.forward;
+			if (_character.Handing[0])
+			{
+				_character.rbody.velocity = Vector3.zero;
+				_character.transform.rotation = _character.Handing[0].gameObject.transform.rotation;
+				_character.transform.position = _character.Handing[0].gameObject.transform.position;
+				_character.transform.localPosition += new Vector3(0f, -2.046f, 0f);
+				_character.transform.localPosition -= _character.transform.forward * 0.204f;
+				_character.State = new HandingState(_character, false);
 
-			Debug.DrawLine(pos, pos + forward, Color.green, 1f);
-			pos += Vector3.down * 0.3f;
-			Debug.DrawLine(pos, pos + forward, Color.green, 1f);
-			pos += Vector3.down * 0.3f;
-			Debug.DrawLine(pos, pos + forward, Color.green, 1f);
-			pos += Vector3.down * 0.3f;
-			Debug.DrawLine(pos, pos + forward, Color.green, 1f);
+				return;
+			}
+			if (_character.Handing[1])
+			{
+				_character.rbody.velocity = Vector3.zero;
+				_character.transform.rotation = _character.Handing[1].gameObject.transform.rotation;
+				_character.transform.position = _character.Handing[1].gameObject.transform.position;
+				_character.transform.localPosition += new Vector3(0f, -1f, 0f);
+				_character.transform.localPosition -= _character.transform.forward * 0.204f;
+
+				_character.State = new HandingState(_character, true);
+				return;
+			}
+			//ground
+			Vector3 pos = _character.transform.position + Vector3.up * 0.1f;
+			Debug.DrawLine(pos, pos - Vector3.up * 0.2f, Color.black, 2f);
+			if (Physics.Raycast(pos, Vector3.down, 0.2f) && _character.rbody.velocity != Vector3.zero)
+			{
+				_character.controller.enabled = !false;
+				_character.cCollider.enabled = !true;
+				_character.rbody.useGravity = !true;
+				_character.rbody.isKinematic = !false;
+				_character.anim.applyRootMotion = !false;
+
+				_character.State = new GroundState(_character);
+			}
 		}
 		public void Update()
 		{
-
+			
 		}
 	}
+
+	class HandingState : IMoveState
+	{
+		private Movement _character;
+		private bool _fenceClimb;
+		public HandingState(Movement character, bool ok)
+		{
+			character.anim.applyRootMotion = false;
+			character.cCollider.enabled = false;
+			character.rbody.useGravity = false;
+			character.rbody.isKinematic = true;
+
+			if(!ok) character.anim.SetTrigger("Handing");
+			_character = character;
+			_fenceClimb = ok;
+		}
+		public void FixedUpdate()
+		{
+			if (_fenceClimb)
+			{
+				_character.anim.applyRootMotion = true;
+				_character.StartCoroutine(_character.FenceClimbCoroutine(1f));
+				_fenceClimb = false;
+			}
+		}
+		public void Update()
+		{
+			if (Input.GetKeyDown(KeyCode.Space))
+			{
+				_character.anim.applyRootMotion = true;
+
+				
+				_character.StartCoroutine(_character.FenceClimbCoroutine(1.5f));
+			}
+		}
+	}
+
 
 	#endregion state without sword
 
@@ -416,13 +499,16 @@ public class Movement : MonoBehaviour
 		anim.speed = 1;
 		_blockRotationPlayer = true;
 	}
-	IEnumerator FenceClimbCoroutine(Vector3 pos, float seconds)
+	IEnumerator FenceClimbCoroutine(float seconds)
 	{
-		transform.position = pos;
+		anim.applyRootMotion = true;
+		anim.SetFloat("InputManitide", 0);
+		anim.SetTrigger("UpOnWall");
+		yield return new WaitForEndOfFrame();
+		anim.SetBool("isGrounded", true);
 		yield return new WaitForSeconds(seconds);
 		State = new GroundState(this);
 		controller.enabled = true;
-		anim.speed = 1;
 	}
 	#endregion
 
