@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: SleshMaterial
+  m_Shader: {fileID: 4800000, guid: 8a5acfc590f0f7f40921c8198a9e1e44, type: 3}
+  m_ShaderKeywords: 
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _Emisiontex:
+        m_Texture: {fileID: 2800000, guid: 29de6dd49f7ce614687171339ad92676, type: 3}
+        m_Scale: {x: 0.73, y: 1}
+        m_Offset: {x: 0, y: -0.03}
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTexture:
+        m_Texture: {fileID: 2800000, guid: dcd0d3956fcc9e146a2d55864a91afb2, type: 3}
+        m_Scale: {x: 0.76, y: 1}
+        m_Offset: {x: 0.01, y: 0.15}
+    - _TextureSample0:
+        m_Texture: {fileID: 2800000, guid: 7c70a4204c86bbf41b3fc5056860c4d4, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _texcoord:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - _Emission: 4.5
+    - _Float0: 0
+    - _Float1: 0
+    - _InvFade: 3
+    - _Opacity: 20
+    - __dirty: 1
+    m_Colors:
+    - _Color0: {r: 0.099012084, g: 0.41541246, b: 0.8396226, a: 1}
+    - _TintColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.5}
+    - _Vector0: {r: 0, g: 0, b: -0.15, a: 0}
+    - _Vectorif: {r: 0.2, g: 0.46, b: 0.24, a: 0}
